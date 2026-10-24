@@ -1,0 +1,475 @@
+<title>Uji Layar HP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: satu kolom sempit untuk HP, melebar jadi dua kolom di layar besar; panel ukur di atas, tes interaksi di bawah. */
+  :root {
+    --bg: #eef2f6;
+    --surface: #ffffff;
+    --ink: #142130;
+    --muted: #5b6b7d;
+    --line: #d5dde6;
+    --accent: #2d59c8;
+    --accent-ink: #ffffff;
+    --ok: #1d7a4c;
+    --ok-bg: #e2f3ea;
+    --bad: #b3361f;
+    --bad-bg: #fbe7e2;
+    --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1620; --surface: #17212d; --ink: #e6edf5; --muted: #93a3b5; --line: #2a3747;
+      --accent: #7f9ff0; --accent-ink: #0f1620;
+      --ok: #6fd3a0; --ok-bg: #163327; --bad: #f2917c; --bad-bg: #3a1d17;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1620; --surface: #17212d; --ink: #e6edf5; --muted: #93a3b5; --line: #2a3747;
+    --accent: #7f9ff0; --accent-ink: #0f1620;
+    --ok: #6fd3a0; --ok-bg: #163327; --bad: #f2917c; --bad-bg: #3a1d17;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-block: 24px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  header { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 7vw, 3rem);
+    line-height: 1.05;
+    margin: 0;
+    text-wrap: balance;
+  }
+  header p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    margin: 0;
+    text-wrap: balance;
+  }
+  section { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .note { margin: 0; color: var(--muted); font-size: 14px; }
+
+  /* Ringkasan hasil */
+  .verdict {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .verdict strong { font-family: var(--font-display); font-size: 1.1rem; }
+  .verdict .dot {
+    flex: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--muted);
+  }
+  .verdict[data-state="ok"] .dot { background: var(--ok); }
+  .verdict[data-state="bad"] .dot { background: var(--bad); }
+
+  .checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+  .checks li {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+  }
+  .checks .label { min-width: 0; }
+  .checks .label small { display: block; color: var(--muted); font-size: 13px; }
+  .pill {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--line);
+    color: var(--muted);
+  }
+  .pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+  .pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+
+  /* Angka perangkat */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .cell { background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .cell dt { font-size: 13px; color: var(--muted); }
+  .cell dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .cell dd small { font-weight: 400; color: var(--muted); font-size: 0.8rem; }
+
+  .columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  @media (min-width: 760px) {
+    .columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+
+  /* Tes sentuh */
+  .tap-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  button {
+    font: inherit;
+    font-weight: 700;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: var(--accent);
+    color: var(--accent-ink);
+    touch-action: manipulation;
+  }
+  button.secondary { background: var(--surface); color: var(--ink); border-color: var(--line); }
+  button:active { transform: scale(0.97); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .count {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    min-width: 3ch;
+  }
+
+  /* Checklist sesi */
+  .todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .todo label {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .todo input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: var(--accent); }
+  .todo input:checked + span { color: var(--muted); text-decoration: line-through; }
+  .todo code { font-family: var(--font-mono); font-size: 0.85em; }
+
+  /* Salin perintah */
+  .cmd {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    padding: 10px 10px 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .cmd code {
+    flex: 1 1 200px; min-width: 0;
+    font-family: var(--font-mono); font-size: 14px;
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+  .status { font-size: 14px; color: var(--muted); min-height: 1.5em; margin: 0; }
+
+  /* Tabel lebar: hanya tabel yang boleh bergeser, bukan halaman */
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  table { border-collapse: collapse; min-width: 640px; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+  th.num { text-align: right; }
+
+  /* Pengukur safe area (tidak terlihat) */
+  #inset-probe {
+    position: fixed; visibility: hidden; pointer-events: none;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button:active { transform: none; }
+  }
+</style>
+
+<div id="inset-probe" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">ccmodel-phonealfin · tes artifact</span>
+    <h1>Uji Layar HP</h1>
+    <p>Halaman ini mengukur layar perangkat yang sedang Anda pakai dan menguji sentuhan, penyimpanan, serta tombol salin. Coba putar HP atau ganti tema; angkanya ikut berubah.</p>
+  </header>
+
+  <section aria-labelledby="h-hasil">
+    <h2 id="h-hasil">Hasil pemeriksaan</h2>
+    <div class="verdict" id="verdict" data-state="">
+      <span class="dot" aria-hidden="true"></span>
+      <strong id="verdict-text">Memeriksa…</strong>
+    </div>
+    <ul class="checks" id="checks"></ul>
+  </section>
+
+  <section aria-labelledby="h-perangkat">
+    <h2 id="h-perangkat">Perangkat ini</h2>
+    <dl class="grid">
+      <div class="cell"><dt>Lebar layar</dt><dd id="v-width">–</dd></div>
+      <div class="cell"><dt>Tinggi layar</dt><dd id="v-height">–</dd></div>
+      <div class="cell"><dt>Rasio piksel</dt><dd id="v-dpr">–</dd></div>
+      <div class="cell"><dt>Orientasi</dt><dd id="v-orient">–</dd></div>
+      <div class="cell"><dt>Tema</dt><dd id="v-theme">–</dd></div>
+      <div class="cell"><dt>Input utama</dt><dd id="v-input">–</dd></div>
+      <div class="cell"><dt>Area aman atas / bawah</dt><dd id="v-inset-tb">–</dd></div>
+      <div class="cell"><dt>Area aman kiri / kanan</dt><dd id="v-inset-lr">–</dd></div>
+    </dl>
+    <p class="note">Area aman adalah ruang yang dipakai notch dan bilah sistem HP. Di browser desktop nilainya 0.</p>
+  </section>
+
+  <div class="columns">
+    <section aria-labelledby="h-sentuh">
+      <h2 id="h-sentuh">Tes sentuhan</h2>
+      <p class="note">Ketuk tombol beberapa kali dengan cepat. Angka harus naik setiap ketukan tanpa zoom.</p>
+      <div class="tap-row">
+        <button type="button" id="tap-btn">Ketuk saya</button>
+        <span class="count" id="tap-count" aria-live="polite">0</span>
+        <button type="button" class="secondary" id="tap-reset">Ulangi</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-salin">
+      <h2 id="h-salin">Tes tombol salin</h2>
+      <p class="note">Perintah pertama yang dijalankan di PC setiap mulai kerja.</p>
+      <div class="cmd">
+        <code id="cmd-text">git pull origin ccr-1edc4109-txbe5a</code>
+        <button type="button" class="secondary" id="copy-btn">Salin</button>
+      </div>
+      <p class="status" id="copy-status" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <section aria-labelledby="h-rutin">
+    <h2 id="h-rutin">Rutinitas sesi</h2>
+    <p class="note">Centangan disimpan di browser perangkat ini saja. Muat ulang halaman untuk menguji penyimpanannya.</p>
+    <ul class="todo" id="todo">
+      <li><label><input type="checkbox" id="t-pull" data-key="pull"><span>Tarik perubahan terbaru dengan <code>git pull</code></span></label></li>
+      <li><label><input type="checkbox" id="t-status" data-key="status"><span>Baca bagian <em>Status terakhir</em> di CLAUDE.md</span></label></li>
+      <li><label><input type="checkbox" id="t-commit" data-key="commit"><span>Commit pekerjaan, pakai awalan <code>wip:</code> kalau belum selesai</span></label></li>
+      <li><label><input type="checkbox" id="t-push" data-key="push"><span>Push ke GitHub sebelum menutup sesi</span></label></li>
+      <li><label><input type="checkbox" id="t-note" data-key="note"><span>Perbarui <em>Status terakhir</em> dengan langkah berikutnya</span></label></li>
+    </ul>
+    <div><button type="button" class="secondary" id="todo-reset">Hapus semua centang</button></div>
+  </section>
+
+  <section aria-labelledby="h-tabel">
+    <h2 id="h-tabel">Tes tabel lebar</h2>
+    <p class="note">Geser tabel ke samping. Hanya tabelnya yang bergeser; halamannya tetap diam.</p>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Perangkat</th><th>Jenis sesi</th><th>Penyimpanan</th><th class="num">Lebar umum</th><th>Catatan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>HP</td><td>Cloud (claude.ai/code)</td><td>Container sementara</td><td class="num">360–430 px</td><td>Push sebelum menutup sesi</td></tr>
+          <tr><td>Tablet</td><td>Cloud (aplikasi Claude)</td><td>Container sementara</td><td class="num">768–1024 px</td><td>Tata letak dua kolom</td></tr>
+          <tr><td>PC</td><td>Claude Code lokal</td><td>Disk sendiri</td><td class="num">1280+ px</td><td>Pull dulu sebelum mulai</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  // Penyimpanan aman: bisa gagal di mode privat atau pratinjau
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+  var storageWorks = (function () {
+    try {
+      localStorage.setItem("__uji", "1");
+      var ok = localStorage.getItem("__uji") === "1";
+      localStorage.removeItem("__uji");
+      return ok;
+    } catch (e) { return false; }
+  })();
+
+  function themeInfo() {
+    var attr = document.documentElement.getAttribute("data-theme");
+    if (attr === "dark" || attr === "light") {
+      return { dark: attr === "dark", source: "dipilih" };
+    }
+    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return { dark: dark, source: "ikut sistem" };
+  }
+
+  function insets() {
+    var cs = getComputedStyle($("inset-probe"));
+    var px = function (v) { return Math.round(parseFloat(v) || 0); };
+    return { t: px(cs.paddingTop), r: px(cs.paddingRight), b: px(cs.paddingBottom), l: px(cs.paddingLeft) };
+  }
+
+  function measure() {
+    var w = window.innerWidth, h = window.innerHeight;
+    var t = themeInfo();
+    var touch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    var ins = insets();
+
+    $("v-width").innerHTML = w + " <small>px</small>";
+    $("v-height").innerHTML = h + " <small>px</small>";
+    $("v-dpr").textContent = (window.devicePixelRatio || 1).toFixed(2).replace(/\.?0+$/, "") + "×";
+    $("v-orient").textContent = w > h ? "Mendatar" : "Tegak";
+    $("v-theme").innerHTML = (t.dark ? "Gelap" : "Terang") + " <small>(" + t.source + ")</small>";
+    $("v-input").textContent = touch ? "Sentuh" : "Mouse";
+    $("v-inset-tb").innerHTML = ins.t + " / " + ins.b + " <small>px</small>";
+    $("v-inset-lr").innerHTML = ins.l + " / " + ins.r + " <small>px</small>";
+
+    runChecks(w);
+  }
+
+  function runChecks(w) {
+    var docEl = document.documentElement;
+    var noHScroll = docEl.scrollWidth <= docEl.clientWidth + 1;
+    var fontsOk = document.fonts && document.fonts.check
+      ? document.fonts.check('16px "Atkinson Hyperlegible"') && document.fonts.check('600 16px "JetBrains Mono"')
+      : null;
+    var bodyBg = getComputedStyle(document.body).backgroundColor;
+    var bgSet = bodyBg && bodyBg !== "rgba(0, 0, 0, 0)" && bodyBg !== "transparent";
+
+    var list = [
+      { label: "Halaman tidak bergeser ke samping", hint: "Lebar isi " + docEl.scrollWidth + " px dari " + docEl.clientWidth + " px", ok: noHScroll },
+      { label: "Tata letak HP aktif", hint: w <= 600 ? "Satu kolom di lebar " + w + " px" : "Layar lebar " + w + " px, tata letak dua kolom", ok: true, info: w > 600 },
+      { label: "Font termuat", hint: fontsOk === null ? "Browser tidak bisa melaporkan" : (fontsOk ? "Font khusus terpakai" : "Memakai font cadangan sistem"), ok: fontsOk !== false },
+      { label: "Penyimpanan browser", hint: storageWorks ? "Centangan akan tersimpan" : "Diblokir; centangan hilang saat dimuat ulang", ok: storageWorks },
+      { label: "Warna tema terpasang", hint: bgSet ? "Latar mengikuti tema " + (themeInfo().dark ? "gelap" : "terang") : "Latar transparan", ok: bgSet }
+    ];
+
+    var ul = $("checks");
+    ul.innerHTML = "";
+    var fails = 0;
+    list.forEach(function (c) {
+      if (!c.ok) fails++;
+      var li = document.createElement("li");
+      var lab = document.createElement("span");
+      lab.className = "label";
+      lab.textContent = c.label;
+      var small = document.createElement("small");
+      small.textContent = c.hint;
+      lab.appendChild(small);
+      var pill = document.createElement("span");
+      pill.className = "pill";
+      if (c.info) { pill.textContent = "INFO"; }
+      else { pill.textContent = c.ok ? "LULUS" : "GAGAL"; pill.setAttribute("data-state", c.ok ? "ok" : "bad"); }
+      li.appendChild(lab);
+      li.appendChild(pill);
+      ul.appendChild(li);
+    });
+
+    var v = $("verdict");
+    v.setAttribute("data-state", fails ? "bad" : "ok");
+    $("verdict-text").textContent = fails
+      ? fails + " pemeriksaan gagal. Lihat rinciannya di bawah."
+      : "Semua pemeriksaan lulus di perangkat ini.";
+  }
+
+  // Tes sentuhan
+  var taps = 0;
+  $("tap-btn").addEventListener("click", function () { taps++; $("tap-count").textContent = taps; });
+  $("tap-reset").addEventListener("click", function () { taps = 0; $("tap-count").textContent = "0"; });
+
+  // Tes salin
+  $("copy-btn").addEventListener("click", function () {
+    var text = $("cmd-text").textContent;
+    var status = $("copy-status");
+    function fallback() {
+      var range = document.createRange();
+      range.selectNodeContents($("cmd-text"));
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      status.textContent = "Tidak bisa menyalin otomatis. Teks sudah dipilih; tekan lama lalu pilih Salin.";
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        status.textContent = "Tersalin. Tempel di terminal PC Anda.";
+      }, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  // Checklist tersimpan
+  var KEY = "uji-layar-hp:rutin";
+  var saved = {};
+  try { saved = JSON.parse(store.get(KEY) || "{}") || {}; } catch (e) { saved = {}; }
+  var boxes = document.querySelectorAll("#todo input");
+  boxes.forEach(function (b) {
+    b.checked = !!saved[b.dataset.key];
+    b.addEventListener("change", function () {
+      saved[b.dataset.key] = b.checked;
+      store.set(KEY, JSON.stringify(saved));
+    });
+  });
+  $("todo-reset").addEventListener("click", function () {
+    saved = {};
+    store.del(KEY);
+    boxes.forEach(function (b) { b.checked = false; });
+  });
+
+  // Ukur ulang saat layar diputar, diubah ukurannya, atau tema berganti
+  var raf = 0;
+  function schedule() { cancelAnimationFrame(raf); raf = requestAnimationFrame(measure); }
+  window.addEventListener("resize", schedule);
+  window.addEventListener("orientationchange", schedule);
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", schedule);
+  }
+  new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+
+  measure();
+})();
+</script>
