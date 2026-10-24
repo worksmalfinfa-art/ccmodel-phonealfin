@@ -34,8 +34,13 @@ GitHub (`origin`) adalah satu-satunya sumber kebenaran. Aturannya:
 
 ## Struktur proyek
 
-Belum ada kode. Perbarui bagian ini setelah kode dari PC masuk: stack yang dipakai,
-cara install, cara menjalankan, dan cara menjalankan test.
+- `artifacts/radar-prospek.html`: tools pencari prospek (CCTV, komputer, hardware) dari
+  media sosial. HTML + JS tunggal tanpa build. Dipublikasikan sebagai Artifact:
+  https://claude.ai/artifact/GsxcJgVvH3UuGv6V1Y21gq. Data prospek dan profil usaha
+  tersimpan di database Artifact (koleksi `leads`, dokumen `config/profil`), jadi sama di HP
+  dan PC. Untuk mengubah halaman: edit file ini lalu publish ulang ke URL yang sama.
+- Belum ada kode dari PC. Perbarui bagian ini setelah kode masuk: stack, cara install,
+  cara menjalankan, dan cara menjalankan test.
 
 ## Status terakhir
 
@@ -44,3 +49,8 @@ cara install, cara menjalankan, dan cara menjalankan test.
 - 2026-10-24 (HP): Repo dibuat dan CLAUDE.md ditambahkan. Artifact tes
   `artifacts/uji-layar-hp.html` dibuka di HP, semua pemeriksaan lulus.
   Berikutnya: push kode dari PC ke repo ini.
+- 2026-10-24 (HP): Membuat tools Radar Prospek (`artifacts/radar-prospek.html`): generator
+  pencarian per platform, penilai postingan (kata kunci + analisa Claude), daftar prospek
+  dengan status dan follow-up, template pesan WA. Diisi 3 prospek contoh (id `contoh-*`).
+  Berikutnya: isi profil usaha, hapus data contoh, coba pakai 1 minggu lalu sesuaikan
+  kata kunci di `RULES`/`PRODUK` sesuai hasil nyata.
