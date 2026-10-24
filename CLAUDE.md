@@ -41,4 +41,6 @@ cara install, cara menjalankan, dan cara menjalankan test.
 
 <!-- Perbarui di akhir setiap sesi. Format: tanggal, perangkat, apa yang dikerjakan, langkah berikutnya. -->
 
-- 2026-10-24 (HP): Repo dibuat dan CLAUDE.md ditambahkan. Berikutnya: push kode dari PC ke repo ini.
+- 2026-10-24 (HP): Repo dibuat dan CLAUDE.md ditambahkan. Artifact tes
+  `artifacts/uji-layar-hp.html` dibuka di HP, semua pemeriksaan lulus.
+  Berikutnya: push kode dari PC ke repo ini.
